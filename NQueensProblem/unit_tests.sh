@@ -48,3 +48,31 @@ if [[ $? != 0 ]]; then
     echo "FAIL: Test genetic algorithm population init"
     exit -1
 fi
+
+echo "Test genetic algorithm fitness computation"
+make test=true testGeneticComputeFitness
+if [[ $? != 0 ]]; then
+    echo "FAIL: Test genetic algorithm fitness computation"
+    exit -1
+fi
+
+echo "Test genetic algorithm fitness proportional mating pool selector"
+make test=true testFitnessPropMatingPoolSelector
+if [[ $? != 0 ]]; then
+    echo "FAIL: Test genetic algorithm fitness proportional mating pool selector"
+    exit -1
+fi
+
+echo "Test genetic algorithm order one crossover operator"
+make test=true testOrderOneCrossoverOperator
+if [[ $? != 0 ]]; then
+    echo "FAIL: Test genetic algorithm order one crossover operator"
+    exit -1
+fi
+
+echo "Test genetic algorithm solve"
+make test=true testGeneticSolve
+if [[ $? != 0 ]]; then
+    echo "FAIL: Test genetic algorithm solve"
+    exit -1
+fi

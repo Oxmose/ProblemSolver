@@ -20,6 +20,9 @@
 #include <random>  /* std::random_device, std::mt19937,
                       std::uniform_int_distribution */
 
+/* nsSolver::MatingPoolSelector */
+#include <solver/MatingPoolSelector.h>
+
 #include <solver/Solver.h> /* nsSolver::Sovler */
 
 #define GEN_POPULATION_SIZE     100
@@ -126,6 +129,12 @@ namespace nsSolver
             std::uniform_int_distribution<uint32_t> randDist;
 
             /**
+             * @brief Genetic mating pool selector.
+             *
+             */
+            MatingPoolSelector* matingPoolSelector = nullptr;
+
+            /**
              * @brief Computer the number of attacks of the current solution.
              *
              * @param[in] solution The current solution for which we need to
@@ -210,6 +219,12 @@ namespace nsSolver
              *
              */
             void testInitPopulation(void);
+
+            /**
+             * @brief Tests the compute fitness function.
+             *
+             */
+            void testComputeFitness(void);
 #endif
 
     };

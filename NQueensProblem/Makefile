@@ -32,7 +32,10 @@ TEST_TARGETS =\
   tests/solver/testHillSolve\
   tests/solver/testGeneticAttackCount\
   tests/solver/testGeneticSolve\
-  tests/solver/testGeneticInitPopulation
+  tests/solver/testGeneticInitPopulation\
+  tests/solver/testGeneticComputeFitness\
+  tests/solver/testFitnessPropMatingPoolSelector\
+  tests/solver/testOrderOneCrossoverOperator
 
 # C++ Flags
 EXTRAFLAGS = -std=c++11 -Wall -Wextra -Werror -O2
@@ -112,20 +115,21 @@ testHillSolve: tests/solver/testHillSolve
 testGeneticAttackCount: tests/solver/testGeneticAttackCount
 testGeneticSolve: tests/solver/testGeneticSolve
 testGeneticInitPopulation: tests/solver/testGeneticInitPopulation
+testGeneticComputeFitness: tests/solver/testGeneticComputeFitness
+testFitnessPropMatingPoolSelector: tests/solver/testFitnessPropMatingPoolSelector
+testOrderOneCrossoverOperator: tests/solver/testOrderOneCrossoverOperator
 
 tests: testGreedyAttackCount testGreedySolve testHillAttackCount testHillSolve \
-       testGeneticAttackCount testGeneticSolve testGeneticInitPopulation
+       testGeneticAttackCount testGeneticInitPopulation \
+	   testGeneticComputeFitness testFitnessPropMatingPoolSelector \
+	   testOrderOneCrossoverOperator testGeneticSolve\
 
 ####################### COVERAGE section #######################
 
 
-COV_DIRS = $(OBJ_DIRS:$(BUILD_DIR)/%=$(COV_DIR)/%) \
-   		   $(TEST_SRC_DIRS:%=$(COV_DIR)/%)
-COV_GCDA_FILES = $(OBJS:$(BUILD_DIR)/%.o=$(COV_DIR)/%.gcda) \
-				 $(TEST_OBJS:$(BUILD_DIR)/%.o=$(COV_DIR)/%.gcda)
-COV_GCNO_FILES = $(OBJS:$(BUILD_DIR)/%.o=$(COV_DIR)/%.gcno) \
-				 $(TEST_OBJS:$(BUILD_DIR)/%.o=$(COV_DIR)/%.gcno)
-
+COV_DIRS = $(OBJ_DIRS:$(BUILD_DIR)/%=$(COV_DIR)/%)
+COV_GCDA_FILES = $(OBJS:$(BUILD_DIR)/%.o=$(COV_DIR)/%.gcda)
+COV_GCNO_FILES = $(OBJS:$(BUILD_DIR)/%.o=$(COV_DIR)/%.gcno)
 
 $(COV_DIRS):
 	@mkdir -p $@
@@ -144,15 +148,9 @@ gen_cov: $(COV_DIRS)
 		if ls $(BUILD_DIR)/$$dir/*.gcno 1> /dev/null 2>&1; then\
 			mv $(BUILD_DIR)/$$dir/*.gcno $(COV_DIR)/$$dir/;\
 		fi;\
-		if ls $(BUILD_DIR)/$(TEST_DIR)/$$dir/*.gcda 1> /dev/null 2>&1; then\
-			mv $(BUILD_DIR)/$(TEST_DIR)/$$dir/*.gcda $(COV_DIR)/$(TEST_DIR)/$$dir/;\
-		fi;\
-		if ls $(BUILD_DIR)/$(TEST_DIR)/$$dir/*.gcno 1> /dev/null 2>&1; then\
-			mv $(BUILD_DIR)/$(TEST_DIR)/$$dir/*.gcno $(COV_DIR)/$(TEST_DIR)/$$dir/;\
-		fi;\
 	done
 
-	gcovr --branches -r . --html --html-details -o $(COV_DIR)/gcovr-report.html
+	gcovr -r . --html --html-details -o $(COV_DIR)/gcovr-report.html
 
 
 ####################### Doxygen section #######################

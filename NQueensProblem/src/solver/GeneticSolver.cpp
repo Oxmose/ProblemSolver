@@ -18,6 +18,9 @@
 #include <random>  /* std::random_device, std::mt19937,
                       std::uniform_int_distribution */
 
+/* nsSolver::FitnessPropMatingPoolSelector */
+#include <solver/FitnessPropMatingPoolSelector.h>
+
 /* Header filed */
 #include <solver/GeneticSolver.h>
 
@@ -35,11 +38,15 @@ GeneticSolver::GeneticSolver(const uint32_t queensCount,
     this->queensCount    = queensCount;
     this->iterCount      = iterCount;
 
+    /* Genetic paramters */
     this->populationSize    = GEN_POPULATION_SIZE;
     this->matingPoolSize    = GEN_MATING_POOL_SIZE;
     this->injectionPoolSize = GEN_INJECTION_POOL_SIZE;
 
+    /* Operators initialization */
+    this->matingPoolSelector = new FitnessPropMatingPoolSelector();
 
+    /* Data and structures initialization */
     this->population = new uint32_t*[this->populationSize];
     for(i = 0; i < this->populationSize; ++i)
     {
@@ -76,6 +83,8 @@ GeneticSolver::~GeneticSolver(void)
     uint32_t i;
 
     /* Delete heaped data */
+    delete this->matingPoolSelector;
+
     for(i = 0; i < this->populationSize; ++i)
     {
         delete[] this->population[i];
@@ -129,6 +138,10 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
     for(i = 0; i < this->iterCount; ++i)
     {
         /* Select the mating pool */
+        (*this->matingPoolSelector)(this->populationFitness,
+                                    this->populationSize,
+                                    this->matingPoolSize,
+                                    this->matingPool);
 
         /* Apply crossover */
 
@@ -215,10 +228,8 @@ void GeneticSolver::initPopulation(void)
 
         /* With the set of possible position, we avoid multiple queens on the
          * same line
-         */
-        /* TODO: Check if this really fasten the convergence, since, I don't
-         * think it is really usefull as crossover might end up in having
-         * multiple queens on the same line.
+         * This is only usefull when using crossover and mutations operators
+         * that keep the number of queens on one line contant.
          */
         for(j = 0; j < this->queensCount; ++j)
         {
@@ -287,6 +298,7 @@ void GeneticSolver::computeFitness(const bool computeChildren,
 /* LCOV_EXCL_START */
 
 #include <stdexcept> /* std::runtime_error */
+#include <cstring>   /* memcpy */
 void GeneticSolver::testGetAttackCount(void) const
 {
     uint32_t val;
@@ -374,6 +386,111 @@ void GeneticSolver::testInitPopulation(void)
                     std::string("Erroneous position found in initial") +
                     std::string(" population"));
             }
+        }
+    }
+}
+
+void GeneticSolver::testComputeFitness(void)
+{
+    uint32_t i;
+
+    initPopulation();
+
+    computeFitness(false, false);
+
+    memcpy(this->children, this->population,
+           sizeof(uint32_t*) * this->matingPoolSize);
+    for(i = 0; i < this->matingPoolSize; ++i)
+    {
+        this->childrenFitness[i] = UINT32_MAX;
+    }
+    memcpy(this->injectionPool, this->population,
+           sizeof(uint32_t*) * this->injectionPoolSize);
+    for(i = 0; i < this->injectionPoolSize; ++i)
+    {
+        this->injectionFitness[i] = UINT32_MAX;
+    }
+
+
+    for(i = 0; i < this->populationSize; ++i)
+    {
+        if(this->populationFitness[i] != getAttackCount(this->population[i]))
+        {
+            throw std::runtime_error(
+                    std::string("Erroneous fitness found in population"));
+        }
+    }
+    for(i = 0; i < this->matingPoolSize; ++i)
+    {
+        if(this->childrenFitness[i] != UINT32_MAX)
+        {
+            throw std::runtime_error(
+                    std::string("Erroneous fitness found in child population"));
+        }
+    }
+    for(i = 0; i < this->injectionPoolSize; ++i)
+    {
+        if(this->injectionFitness[i] != UINT32_MAX)
+        {
+            throw std::runtime_error(
+                    std::string("Erroneous fitness found in injection") +
+                    std::string(" population"));
+        }
+    }
+
+    computeFitness(true, false);
+
+    for(i = 0; i < this->populationSize; ++i)
+    {
+        if(this->populationFitness[i] != getAttackCount(this->population[i]))
+        {
+            throw std::runtime_error(
+                    std::string("Erroneous fitness found in population"));
+        }
+    }
+    for(i = 0; i < this->matingPoolSize; ++i)
+    {
+        if(this->childrenFitness[i] != getAttackCount(this->children[i]))
+        {
+            throw std::runtime_error(
+                    std::string("Erroneous fitness found in child population"));
+        }
+    }
+    for(i = 0; i < this->injectionPoolSize; ++i)
+    {
+        if(this->injectionFitness[i] != UINT32_MAX)
+        {
+            throw std::runtime_error(
+                    std::string("Erroneous fitness found in injection") +
+                    std::string(" population"));
+        }
+    }
+
+    computeFitness(false, true);
+
+    for(i = 0; i < this->populationSize; ++i)
+    {
+        if(this->populationFitness[i] != getAttackCount(this->population[i]))
+        {
+            throw std::runtime_error(
+                    std::string("Erroneous fitness found in population"));
+        }
+    }
+    for(i = 0; i < this->matingPoolSize; ++i)
+    {
+        if(this->childrenFitness[i] != getAttackCount(this->children[i]))
+        {
+            throw std::runtime_error(
+                    std::string("Erroneous fitness found in child population"));
+        }
+    }
+    for(i = 0; i < this->injectionPoolSize; ++i)
+    {
+        if(this->injectionFitness[i] != getAttackCount(injectionPool[i]))
+        {
+            throw std::runtime_error(
+                    std::string("Erroneous fitness found in injection") +
+                    std::string(" population"));
         }
     }
 }

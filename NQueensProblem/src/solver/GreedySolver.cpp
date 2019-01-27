@@ -17,7 +17,7 @@
 #include <random>  /* std::random_device, std::mt19937,
                       std::uniform_int_distribution */
 
-/* Header filed */
+/* Header file */
 #include <solver/GreedySolver.h>
 
 using namespace nsSolver; /* Solver's namespace */
