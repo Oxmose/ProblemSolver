@@ -35,7 +35,9 @@ TEST_TARGETS =\
   tests/solver/testGeneticInitPopulation\
   tests/solver/testGeneticComputeFitness\
   tests/solver/testFitnessPropMatingPoolSelector\
-  tests/solver/testOrderOneCrossoverOperator
+  tests/solver/testOrderOneCrossoverOperator\
+  tests/solver/testSwapMutationOperator\
+  tests/solver/testTossProbability
 
 # C++ Flags
 EXTRAFLAGS = -std=c++11 -Wall -Wextra -Werror -O2
@@ -118,11 +120,14 @@ testGeneticInitPopulation: tests/solver/testGeneticInitPopulation
 testGeneticComputeFitness: tests/solver/testGeneticComputeFitness
 testFitnessPropMatingPoolSelector: tests/solver/testFitnessPropMatingPoolSelector
 testOrderOneCrossoverOperator: tests/solver/testOrderOneCrossoverOperator
+testSwapMutationOperator: tests/solver/testSwapMutationOperator
+testTossProbability: tests/solver/testTossProbability
 
 tests: testGreedyAttackCount testGreedySolve testHillAttackCount testHillSolve \
        testGeneticAttackCount testGeneticInitPopulation \
 	   testGeneticComputeFitness testFitnessPropMatingPoolSelector \
-	   testOrderOneCrossoverOperator testGeneticSolve\
+	   testOrderOneCrossoverOperator testSwapMutationOperator \
+	   testTossProbability testGeneticSolve
 
 ####################### COVERAGE section #######################
 

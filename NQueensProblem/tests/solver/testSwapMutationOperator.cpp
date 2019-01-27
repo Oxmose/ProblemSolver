@@ -1,4 +1,4 @@
-#include <solver/OrderOneCrossoverOperator.h>
+#include <solver/SwapMutationOperator.h>
 
 #include <iostream>  /* std::cout, std::endl */
 #include <cstring>   /* strncmp */
@@ -9,9 +9,8 @@
 
 using namespace nsSolver;
 
-#define POP_SIZE        100U
-#define SELECTION_COUNT 100U
-#define QUEENSCOUNT     100U
+#define POP_SIZE        10000U
+#define QUEENSCOUNT     50U
 
 static void initPopulation(uint32_t* individual)
 {
@@ -50,6 +49,10 @@ static void initPopulation(uint32_t* individual)
     }
 }
 
+#ifndef _TESTMODE
+#define _TESTMODE
+#endif
+
 int main(int argc, char** argv)
 {
     (void)argc;
@@ -57,63 +60,63 @@ int main(int argc, char** argv)
 
     #ifdef _TESTMODE
 
-    uint32_t i;
-    uint32_t j;
-    uint32_t k;
-    uint32_t **pop = new uint32_t*[POP_SIZE];
-    uint32_t *matePool = new uint32_t[POP_SIZE];
-    uint32_t **children = new uint32_t*[POP_SIZE];
+    uint32_t   i;
+    uint32_t   j;
+    uint32_t   mut;
+    uint32_t** pop = new uint32_t*[POP_SIZE];
+    uint32_t** popSave = new uint32_t*[POP_SIZE];
+    uint32_t*  popFitness = new uint32_t[POP_SIZE];
+    std::vector<uint32_t> selection;
 
     for(i = 0; i < POP_SIZE; ++i)
     {
         pop[i] = new uint32_t[QUEENSCOUNT];
-        children[i] = new uint32_t[QUEENSCOUNT];
+        popSave[i] = new uint32_t[QUEENSCOUNT];;
+        popFitness[i] = i;
+
         initPopulation(pop[i]);
-        matePool[i] = i;
+        memcpy(popSave[i], pop[i], sizeof(uint32_t) * QUEENSCOUNT);
     }
 
-    OrderOneCrossoverOperator crossover;
+    SwapMutationOperator mutationOp;
 
-    crossover(QUEENSCOUNT, (const uint32_t **)pop, POP_SIZE,
-              (const uint32_t *)matePool, 0, children);
+    mutationOp(pop, POP_SIZE, POP_SIZE / 2, popFitness, QUEENSCOUNT, selection);
 
-    crossover(QUEENSCOUNT, (const uint32_t **)pop, POP_SIZE,
-              (const uint32_t *)matePool, POP_SIZE, children);
 
-    for(i = 0; i < POP_SIZE; ++i)
+    for(i = 0; i < POP_SIZE / 2; ++i)
     {
         for(j = 0; j < QUEENSCOUNT; ++j)
         {
-            //std::cout << pop[i][j] << " ";
-        }
-        //std::cout << std::endl;
-    }
-    std::cout << std::endl;
-    for(i = 0; i < POP_SIZE; ++i)
-    {
-        for(j = 0; j < QUEENSCOUNT; ++j)
-        {
-            for(k = j + 1; k < QUEENSCOUNT; ++k)
+            if(pop[i][j] != popSave[i][j])
             {
-                if(children[i][j] == children[i][k])
-                {
-                    throw std::runtime_error("Children has duplicate!");
-                }
+                throw std::runtime_error("Individual should't have mutated");
             }
-            //std::cout << children[i][j] << " ";
         }
-        //std::cout << std::endl;
     }
-
+    for(; i < POP_SIZE; ++i)
+    {
+        mut = 0;
+        for(j = 0; j < QUEENSCOUNT; ++j)
+        {
+            if(pop[i][j] != popSave[i][j])
+            {
+                ++mut;
+            }
+        }
+        if(mut == 0)
+        {
+            throw std::runtime_error("Individual should have mutated");
+        }
+    }
 
     for(i = 0; i < POP_SIZE; ++i)
     {
         delete[] pop[i];
-        delete[] children[i];
+        delete[] popSave[i];
     }
     delete[] pop;
-    delete[] matePool;
-    delete[] children;
+    delete[] popSave;
+    delete[] popFitness;
 
     std::cout << "\033[1;32mPASSED\033[0m\t" << std::endl;
 

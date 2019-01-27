@@ -70,6 +70,21 @@ if [[ $? != 0 ]]; then
     exit -1
 fi
 
+echo "Test genetic algorithm swap mutation operator"
+make test=true testSwapMutationOperator
+if [[ $? != 0 ]]; then
+    echo "FAIL: Test genetic algorithm swap mutation operator"
+    exit -1
+fi
+
+echo "Test genetic algorithm toss probability"
+make test=true testTossProbability
+if [[ $? != 0 ]]; then
+    echo "FAIL: Test genetic algorithm toss probability"
+    exit -1
+fi
+
+
 echo "Test genetic algorithm solve"
 make test=true testGeneticSolve
 if [[ $? != 0 ]]; then

@@ -20,6 +20,10 @@
 
 /* nsSolver::FitnessPropMatingPoolSelector */
 #include <solver/FitnessPropMatingPoolSelector.h>
+/* nsSolver::OrderOneCrossoverOperator */
+#include <solver/OrderOneCrossoverOperator.h>
+/* nsSolver::SwapMutationOperator */
+#include <solver/SwapMutationOperator.h>
 
 /* Header filed */
 #include <solver/GeneticSolver.h>
@@ -42,9 +46,12 @@ GeneticSolver::GeneticSolver(const uint32_t queensCount,
     this->populationSize    = GEN_POPULATION_SIZE;
     this->matingPoolSize    = GEN_MATING_POOL_SIZE;
     this->injectionPoolSize = GEN_INJECTION_POOL_SIZE;
+    this->mutationSize      = GEN_MUTATION_SIZE;
 
     /* Operators initialization */
     this->matingPoolSelector = new FitnessPropMatingPoolSelector();
+    this->crossoverOperator  = new OrderOneCrossoverOperator();
+    this->mutationOperator   = new SwapMutationOperator();
 
     /* Data and structures initialization */
     this->population = new uint32_t*[this->populationSize];
@@ -73,9 +80,6 @@ GeneticSolver::GeneticSolver(const uint32_t queensCount,
     /* Initialize the random generator */
     std::random_device rd;
     generator = std::mt19937(rd());
-
-    /* Set the random distribution */
-    randDist = std::uniform_int_distribution<uint32_t>(0, queensCount - 1);
 }
 
 GeneticSolver::~GeneticSolver(void)
@@ -116,8 +120,14 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
                           uint32_t &attackCount)
 {
     uint32_t i;
+    uint32_t j;
     uint32_t bestFitness;
     uint32_t bestFitnessIndex;
+    bool     mated;
+    bool     mutated;
+    bool     injected;
+
+    std::vector<uint32_t> selection;
 
     /* Initializes the data */
     solution.clear();
@@ -137,19 +147,63 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
     /* Generations loop */
     for(i = 0; i < this->iterCount; ++i)
     {
-        /* Select the mating pool */
-        (*this->matingPoolSelector)(this->populationFitness,
-                                    this->populationSize,
-                                    this->matingPoolSize,
-                                    this->matingPool);
+        mated    = false;
+        mutated  = false;
+        injected = false;
 
-        /* Apply crossover */
+        if(tossProbability(GEN_CROSSOVER_PROBA))
+        {
+            /* Select the mating pool */
+            (*this->matingPoolSelector)(this->populationFitness,
+                                        this->populationSize,
+                                        this->matingPoolSize,
+                                        this->matingPool);
+
+            /* Apply crossover */
+            (*this->crossoverOperator)(this->queensCount,
+                                       (const uint32_t**)this->population,
+                                       this->populationSize,
+                                       (const uint32_t*)this->matingPool,
+                                       this->matingPoolSize,
+                                       this->children);
+            for(j = 0; j < this->matingPoolSize; ++j)
+            {
+                this->childrenFitness[j] = UINT32_MAX;
+            }
+            mated = true;
+        }
 
         /* Apply mutation */
+        if(tossProbability(GEN_MUTATION_PROBA))
+        {
+            (*this->mutationOperator)(this->population,
+                                      this->populationSize,
+                                      this->mutationSize,
+                                      this->populationFitness,
+                                      this->queensCount,
+                                      selection);
+
+            /* All mutated individuals need to recompute their fitness */
+            for(j = 0; j < selection.size(); ++j)
+            {
+                this->populationFitness[selection[j]] = UINT32_MAX;
+            }
+
+            mutated = true;
+        }
+
 
         /* Apply injection */
+        if((i + 1) % GEN_INJECTION_RATE == 0)
+        {
+            injected = true;
+        }
 
         /* Compute new fitness */
+        if(mated || mutated || injected)
+        {
+            computeFitness(mated, injected);
+        }
 
         /* Population selection */
 
@@ -291,6 +345,14 @@ void GeneticSolver::computeFitness(const bool computeChildren,
     }
 }
 
+bool GeneticSolver::tossProbability(const double probability)
+{
+    std::uniform_int_distribution<uint32_t> distribution(0, 1000000000);
+    uint32_t intProb = probability * 1000000000;
+
+    return (distribution(this->generator) < intProb);
+}
+
 #ifdef _TESTMODE
 /*******************************************************************************
  * Test methods
@@ -299,6 +361,7 @@ void GeneticSolver::computeFitness(const bool computeChildren,
 
 #include <stdexcept> /* std::runtime_error */
 #include <cstring>   /* memcpy */
+#include <iostream>  /* std::cout, std::endl */
 void GeneticSolver::testGetAttackCount(void) const
 {
     uint32_t val;
@@ -493,6 +556,40 @@ void GeneticSolver::testComputeFitness(void)
                     std::string(" population"));
         }
     }
+}
+
+void GeneticSolver::testTossProbability(void)
+{
+    uint32_t i;
+    uint32_t j;
+    uint32_t val;
+    uint32_t counter;
+    float    avg;
+    float    loopVal;
+
+    for(i = 0; i < 11; ++i)
+    {
+        loopVal = (float)i / 10;
+        counter = 200000;
+        val = 0;
+        for(j = 0; j < counter; ++j)
+        {
+            if(tossProbability(loopVal))
+            {
+                ++val;
+            }
+        }
+        avg = (float)val / (float)counter;
+
+        std::cout << "Avg: " << avg << std::endl;
+        if(avg < loopVal - 0.02 || avg > loopVal + 0.02)
+        {
+            throw std::runtime_error(
+                        std::string("Erroneous toss probability value"));
+        }
+    }
+
+
 }
 /* LCOV_EXCL_STOP */
 #endif

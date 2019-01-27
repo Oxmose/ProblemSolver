@@ -22,12 +22,20 @@
 
 /* nsSolver::MatingPoolSelector */
 #include <solver/MatingPoolSelector.h>
+/* nsSolver::Crossoveroperator */
+#include <solver/CrossoverOperator.h>
+/* nsSolver::MutationOperator */
+#include <solver/MutationOperator.h>
 
 #include <solver/Solver.h> /* nsSolver::Sovler */
 
 #define GEN_POPULATION_SIZE     100
 #define GEN_MATING_POOL_SIZE    40
 #define GEN_INJECTION_POOL_SIZE 20
+#define GEN_CROSSOVER_PROBA     0.9
+#define GEN_MUTATION_PROBA      0.4
+#define GEN_MUTATION_SIZE       50
+#define GEN_INJECTION_RATE      25
 
 /**
  * @brief N Queens problem solvers.
@@ -117,22 +125,34 @@ namespace nsSolver
             uint32_t* injectionFitness;
 
             /**
+             * @brief Size of the population that should be mutated.
+             *
+             */
+            uint32_t mutationSize;
+
+            /**
              * @brief Random engine, must be seeded at object initialization.
              *
              */
             std::mt19937 generator;
 
             /**
-             * @brief Random distribution.
-             *
-             */
-            std::uniform_int_distribution<uint32_t> randDist;
-
-            /**
              * @brief Genetic mating pool selector.
              *
              */
             MatingPoolSelector* matingPoolSelector = nullptr;
+
+            /**
+             * @brief Genetic crossover operator.
+             *
+             */
+            CrossoverOperator* crossoverOperator = nullptr;
+
+            /**
+             * @brief Genetic mutation operator.
+             *
+             */
+            MutationOperator* mutationOperator = nullptr;
 
             /**
              * @brief Computer the number of attacks of the current solution.
@@ -161,6 +181,17 @@ namespace nsSolver
              */
             void computeFitness(const bool computeChildren,
                                 const bool computeInjectionPool);
+
+            /**
+             * @brief Generate a random toss and returns true if the toss is
+             * under the given probability.
+             *
+             * @param[in] probability The probability to test.
+             *
+             * @returns True if the toss is under the given probability, false
+             * otherwise.
+             */
+            bool tossProbability(const double probability);
 
         public:
             /**
@@ -225,6 +256,12 @@ namespace nsSolver
              *
              */
             void testComputeFitness(void);
+
+            /**
+             * @brief Tests the TossProbability method.
+             *
+             */
+            void testTossProbability(void);
 #endif
 
     };
