@@ -151,6 +151,7 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
     bestFitness      = 0;
     bestFitnessIndex = 0;
 
+    std::cout << "Processing ";
     /* Generations loop */
     for(i = 0; i < this->iterCount; ++i)
     {
@@ -245,15 +246,14 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
                 bestFitnessIndex = j;
             }
         }
-
-        std::cout << "Iteration " << i
-                  << " | Best: " << bestFitness
-                  << std::endl;
+        std::cout << "\r Iteration " << i
+                  << " | Best: " << bestFitness;
         if(bestFitness == 0)
         {
             break;
         }
     }
+    std::cout << std::endl;
 
     /* Save the solution */
     solution.insert(solution.begin(),
@@ -440,11 +440,11 @@ void GeneticSolver::testSolve(void)
     uint32_t val;
     uint32_t i;
 
-    std::vector<uint32_t> sol(4);
-    uint32_t solArr[4];
+    std::vector<uint32_t> sol(100);
+    uint32_t solArr[100];
 
     solve(sol, val);
-    for(i = 0; i < 4; ++i)
+    for(i = 0; i < 100; ++i)
     {
         solArr[i] = sol[i];
     }

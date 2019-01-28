@@ -11,9 +11,8 @@ int main(int argc, char** argv)
 
     #ifdef _TESTMODE
 
-    GeneticSolver solver(4, 100);
-    /* TODO actual test */
-    //solver.testSolve();
+    GeneticSolver solver(100, 100);
+    solver.testSolve();
 
     std::cout << "\033[1;32mPASSED\033[0m\t" << std::endl;
 
