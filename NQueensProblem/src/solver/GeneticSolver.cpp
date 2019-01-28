@@ -12,11 +12,12 @@
  * The algorithm used to solvle the problem is a genetic algorithm.
  ******************************************************************************/
 
-#include <cstdint> /* uint32_t */
-#include <vector>  /* std::vector */
-#include <set>     /* std::set */
-#include <random>  /* std::random_device, std::mt19937,
-                      std::uniform_int_distribution */
+#include <cstdint>  /* uint32_t */
+#include <vector>   /* std::vector */
+#include <set>      /* std::set */
+#include <iostream> /* std::cout, std::endl */
+#include <random>   /* std::random_device, std::mt19937,
+                       std::uniform_int_distribution */
 
 /* nsSolver::FitnessPropMatingPoolSelector */
 #include <solver/FitnessPropMatingPoolSelector.h>
@@ -24,6 +25,8 @@
 #include <solver/OrderOneCrossoverOperator.h>
 /* nsSolver::SwapMutationOperator */
 #include <solver/SwapMutationOperator.h>
+/* nsSolver::FitnessPopulationSelector */
+#include <solver/FitnessPopulationSelector.h>
 
 /* Header filed */
 #include <solver/GeneticSolver.h>
@@ -52,6 +55,7 @@ GeneticSolver::GeneticSolver(const uint32_t queensCount,
     this->matingPoolSelector = new FitnessPropMatingPoolSelector();
     this->crossoverOperator  = new OrderOneCrossoverOperator();
     this->mutationOperator   = new SwapMutationOperator();
+    this->populationSelector = new FitnessPopulationSelector();
 
     /* Data and structures initialization */
     this->population = new uint32_t*[this->populationSize];
@@ -144,6 +148,9 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
     /* Compute the first fitness */
     computeFitness(false, false);
 
+    bestFitness      = 0;
+    bestFitnessIndex = 0;
+
     /* Generations loop */
     for(i = 0; i < this->iterCount; ++i)
     {
@@ -196,7 +203,7 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
         /* Apply injection */
         if((i + 1) % GEN_INJECTION_RATE == 0)
         {
-            injected = true;
+            //injected = true;
         }
 
         /* Compute new fitness */
@@ -206,18 +213,45 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
         }
 
         /* Population selection */
-
-    }
-
-    /* Find the best solution */
-    bestFitness      = this->populationFitness[0];
-    bestFitnessIndex = 0;
-    for(i = 1; i < this->populationSize; ++i)
-    {
-        if(this->populationFitness[i] < bestFitness)
+        if(mated)
         {
-            bestFitness      = this->populationFitness[i];
-            bestFitnessIndex = i;
+            (*this->populationSelector)(this->population,
+                                        this->populationSize,
+                                        this->populationFitness,
+                                        (const uint32_t**)this->children,
+                                        this->matingPoolSize,
+                                        (const uint32_t*)this->childrenFitness,
+                                        this->queensCount);
+        }
+        if(injected)
+        {
+            (*this->populationSelector)(this->population,
+                                        this->populationSize,
+                                        this->populationFitness,
+                                        (const uint32_t**)this->injectionPool,
+                                        this->injectionPoolSize,
+                                        (const uint32_t*)this->injectionFitness,
+                                        this->queensCount);
+        }
+
+        /* Find the best solution */
+        bestFitness      = this->populationFitness[0];
+        bestFitnessIndex = 0;
+        for(j = 1; j < this->populationSize; ++j)
+        {
+            if(this->populationFitness[j] < bestFitness)
+            {
+                bestFitness      = this->populationFitness[j];
+                bestFitnessIndex = j;
+            }
+        }
+
+        std::cout << "Iteration " << i
+                  << " | Best: " << bestFitness
+                  << std::endl;
+        if(bestFitness == 0)
+        {
+            break;
         }
     }
 
@@ -225,7 +259,7 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
     solution.insert(solution.begin(),
                     this->population[bestFitnessIndex],
                     this->population[bestFitnessIndex] + this->queensCount);
-    attackCount = bestFitnessIndex;
+    attackCount = bestFitness;
 }
 
 /*******************************************************************************

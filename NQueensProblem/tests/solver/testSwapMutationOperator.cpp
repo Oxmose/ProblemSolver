@@ -49,10 +49,6 @@ static void initPopulation(uint32_t* individual)
     }
 }
 
-#ifndef _TESTMODE
-#define _TESTMODE
-#endif
-
 int main(int argc, char** argv)
 {
     (void)argc;

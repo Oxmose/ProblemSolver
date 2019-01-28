@@ -26,15 +26,17 @@
 #include <solver/CrossoverOperator.h>
 /* nsSolver::MutationOperator */
 #include <solver/MutationOperator.h>
+/* nsSolver::PopulationSelector */
+#include <solver/PopulationSelector.h>
 
 #include <solver/Solver.h> /* nsSolver::Sovler */
 
 #define GEN_POPULATION_SIZE     100
-#define GEN_MATING_POOL_SIZE    40
+#define GEN_MATING_POOL_SIZE    60
 #define GEN_INJECTION_POOL_SIZE 20
 #define GEN_CROSSOVER_PROBA     0.9
-#define GEN_MUTATION_PROBA      0.4
-#define GEN_MUTATION_SIZE       50
+#define GEN_MUTATION_PROBA      0.1
+#define GEN_MUTATION_SIZE       99
 #define GEN_INJECTION_RATE      25
 
 /**
@@ -153,6 +155,12 @@ namespace nsSolver
              *
              */
             MutationOperator* mutationOperator = nullptr;
+
+            /**
+             * @brief Genetic population selector.
+             *
+             */
+            PopulationSelector* populationSelector = nullptr;
 
             /**
              * @brief Computer the number of attacks of the current solution.

@@ -92,7 +92,24 @@ int main(int argc, char** argv)
             std::cout << "]";
     }
     std::cout << std::endl;
-
+#if 0
+    for(i = 0; i < solution.size(); ++i)
+    {
+        std::cout << "|";
+        for(uint32_t j = 0; j < solution.size(); ++j)
+        {
+            if(solution[j] == i)
+            {
+                std::cout << "X|";
+            }
+            else
+            {
+                 std::cout << ".|";
+            }
+        }
+        std::cout << std::endl;
+    }
+#endif
     delete solver;
     return 0;
 }

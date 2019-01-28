@@ -84,6 +84,12 @@ if [[ $? != 0 ]]; then
     exit -1
 fi
 
+echo "Test genetic algorithm fitness population selector"
+make test=true testFitnessPopulationSelector
+if [[ $? != 0 ]]; then
+    echo "FAIL: Test genetic algorithm fitness population selector"
+    exit -1
+fi
 
 echo "Test genetic algorithm solve"
 make test=true testGeneticSolve

@@ -1,23 +1,20 @@
 /*******************************************************************************
- * File: FitnessPopulationSelector.h
+ * File: PopulationSelector.h
  *
  * Author: Alexy Torres Aurora Dugo
  *
- * Date: 27/01/2019
+ * Date: 11/12/2018
  *
  * Version: 1.0
  *
- * Implements the PopulationSelector interface. Population selection operator
- * based on the fitness of the individual. Only keeps the fittest individuals in
- * the population.
+ * Population selection operator interface. This class defines the API a
+ * population selection operator should implement.
  ******************************************************************************/
 
-#ifndef __SOLVER_FITNESS_POPULATION_SELECTOR_H_
-#define __SOLVER_FITNESS_POPULATION_SELECTOR_H_
+#ifndef __SOLVER_POPULATION_SELECTOR_H_
+#define __SOLVER_POPULATION_SELECTOR_H_
 
 #include <cstdint>       /* Generic int types */
-
-#include <solver/PopulationSelector.h> /* nsSolver::PopulationSelector */
 
 /**
  * @brief N Queens problem solvers.
@@ -26,16 +23,14 @@
 namespace nsSolver
 {
     /**
-     * @brief Implements the PopulationSelector interface. Population selection
-     * operator based on the fitness of the individual. Only keeps the fittest
-     * individuals in the population.
+     * @brief Population selection operator interface. This class defines the API a
+     * population selection operator should implement.
+     * A population selector is used in genetic algorithm to select the
+     * individuals that will survive the current generatio.
      *
      */
-    class FitnessPopulationSelector : public PopulationSelector
+    class PopulationSelector
     {
-        private:
-
-
         public:
             /**
              * @brief Merge the children to the current population and select
@@ -57,20 +52,14 @@ namespace nsSolver
                                     const uint32_t** children,
                                     const uint32_t   childrenSize,
                                     const uint32_t*  childrenFitness,
-                                    const uint32_t   individualSize);
+                                    const uint32_t   individualSize) = 0;
 
             /**
-             * @brief Construct a new Fitness Population Selector object.
+             * @brief Destroy the Population Selector object.
              *
              */
-            FitnessPopulationSelector(void);
-
-            /**
-             * @brief Destroy the Fitness Population Selector object.
-             *
-             */
-            virtual ~FitnessPopulationSelector(void) {}
+            virtual ~PopulationSelector(void) {}
     };
 }
 
-#endif /* #ifndef __SOLVER_FITNESS_POPULATION_SELECTOR_H_ */
+#endif /* #ifndef __SOLVER_POPULATION_SELECTOR_H_ */
