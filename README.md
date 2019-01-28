@@ -18,7 +18,7 @@ The N queens puzzle is the problem of placing N chess queens on an N×N chessboa
 For ease of use (in the development context of the exercise) you can only
 compile one type of algorithm at a time.
 
-**Use of`make`:**
+**Use of `make`:**
 * `make` to compile the project.
 * `make test=true testname` to execute the test `testname`.
 
