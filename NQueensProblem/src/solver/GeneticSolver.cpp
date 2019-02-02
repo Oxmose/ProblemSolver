@@ -256,8 +256,11 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
                 bestFitnessIndex = j;
             }
         }
-        std::cout << "\r Iteration " << i
-                  << " | Best: " << bestFitness;
+        if(i  % (this->iterCount / 100) == 0)
+        {
+            std::cout << "Iteration " << i
+                    << " | Best: " << bestFitness << std::endl;
+        }
         if(bestFitness == 0)
         {
             break;
