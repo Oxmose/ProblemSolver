@@ -163,6 +163,12 @@ namespace nsSolver
             PopulationSelector* populationSelector = nullptr;
 
             /**
+             * @brief Number of cores present to process the data.
+             *
+             */
+            uint32_t coreCount;
+
+            /**
              * @brief Computer the number of attacks of the current solution.
              *
              * @param[in] solution The current solution for which we need to
@@ -200,6 +206,25 @@ namespace nsSolver
              * otherwise.
              */
             bool tossProbability(const double probability);
+
+
+            /**
+             * @brief Compute the fitness of a certain part of a population.
+             * This function is used as a thread routine.
+             *
+             * @param[in] index The index from which the function needs to
+             * compute the fitness.
+             * @param[in] blockSize The number of individual to compute the
+             * fitness of.
+             * @param[in] population The population to use.
+             * @param[in] popSize The size of the population.
+             * @param[out] popFitness The fitness array of the population.
+             */
+            void computeFitnessThread(const uint32_t index,
+                                      const uint32_t blockSize,
+                                      const uint32_t** population,
+                                      const uint32_t popSize,
+                                      uint32_t* popFitness);
 
         public:
             /**

@@ -16,6 +16,7 @@
 #include <vector>   /* std::vector */
 #include <set>      /* std::set */
 #include <iostream> /* std::cout, std::endl */
+#include <thread>   /* std::thread */
 #include <random>   /* std::random_device, std::mt19937,
                        std::uniform_int_distribution */
 
@@ -141,6 +142,15 @@ void GeneticSolver::solve(std::vector<uint32_t>& solution,
     {
         return;
     }
+
+    /* Get cores count */
+    this->coreCount = std::thread::hardware_concurrency();
+    if(this->coreCount == 0)
+    {
+        this->coreCount = 1;
+    }
+
+    std::cout << "Detected " << this->coreCount << " cores." << std::endl;
 
     /* Initialize the population */
     initPopulation();
@@ -336,12 +346,62 @@ void GeneticSolver::initPopulation(void)
     }
 }
 
+void GeneticSolver::computeFitnessThread(const uint32_t index,
+                                         const uint32_t blockSize,
+                                         const uint32_t** population,
+                                         const uint32_t popSize,
+                                         uint32_t* popFitness)
+{
+    uint32_t i;
+    uint32_t lastItem;
+
+    lastItem = index + blockSize;
+    if(lastItem > popSize)
+    {
+        lastItem = popSize;
+    }
+
+    for(i = index; i < lastItem; ++i)
+    {
+        /* If the fitness is UINT32_MAX, we need to compute it */
+        if(popFitness[i] == UINT32_MAX)
+        {
+            popFitness[i] = getAttackCount(population[i]);
+        }
+    }
+}
+
 void GeneticSolver::computeFitness(const bool computeChildren,
                                    const bool computeInjectionPool)
 {
     uint32_t i;
+    uint32_t blockSize;
+
+    std::vector<std::thread> threads;
+
+    /* Compute the number of parallel blocks */
+    blockSize  = this->populationSize / this->coreCount;
+    if(this->populationSize % this->coreCount != 0)
+    {
+        ++blockSize;
+    }
 
     /* Compute the population fitness */
+    for(i = 0; i < this->coreCount; ++i)
+    {
+        threads.push_back(std::thread(&GeneticSolver::computeFitnessThread,
+                                      this,
+                                      i * blockSize,
+                                      blockSize,
+                                      (const uint32_t**)this->population,
+                                      this->populationSize,
+                                      this->populationFitness));
+    }
+    for(i = 0; i < this->coreCount; ++i)
+    {
+        threads[i].join();
+    }
+#if 0
     for(i = 0; i < this->populationSize; ++i)
     {
         /* If the fitness is UINT32_MAX, we need to compute it */
@@ -350,10 +410,32 @@ void GeneticSolver::computeFitness(const bool computeChildren,
             this->populationFitness[i] = getAttackCount(this->population[i]);
         }
     }
-
+#endif
     /* If we need to compute children fitness */
     if(computeChildren)
     {
+        threads.clear();
+        /* Compute the number of parallel blocks */
+        blockSize  = this->matingPoolSize / this->coreCount;
+        if(this->matingPoolSize % this->coreCount != 0)
+        {
+            ++blockSize;
+        }
+        for(i = 0; i < this->coreCount; ++i)
+        {
+            threads.push_back(std::thread(&GeneticSolver::computeFitnessThread,
+                                        this,
+                                        i * blockSize,
+                                        blockSize,
+                                        (const uint32_t**)this->children,
+                                        this->matingPoolSize,
+                                        this->childrenFitness));
+        }
+        for(i = 0; i < this->coreCount; ++i)
+        {
+            threads[i].join();
+        }
+#if 0
         for(i = 0; i < this->matingPoolSize; ++i)
         {
             /* If the fitness is UINT32_MAX, we need to compute it */
@@ -362,6 +444,7 @@ void GeneticSolver::computeFitness(const bool computeChildren,
                 this->childrenFitness[i] = getAttackCount(this->children[i]);
             }
         }
+#endif
     }
 
     /* If we need to compute the inject pool fitness */

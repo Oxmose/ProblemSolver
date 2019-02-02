@@ -41,7 +41,7 @@ TEST_TARGETS =\
   tests/solver/testFitnessPopulationSelector
 
 # C++ Flags
-EXTRAFLAGS = -std=c++11 -Wall -Wextra -Werror -O2
+EXTRAFLAGS = -std=c++11 -Wall -Wextra -Werror -O2 -pthread
 
 # COVERAGE_ENABLE
 ifeq ($(COVERAGE), true)
